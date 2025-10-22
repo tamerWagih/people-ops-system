@@ -2,6 +2,7 @@
   "name": "people-ops-system",
   "version": "1.0.0",
   "description": "People Operation and Management System",
+  "type": "module",
   "private": true,
   "workspaces": [
     "frontend",
@@ -12,11 +13,25 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "prepare": "husky install",
+    "lint-staged": "lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "devDependencies": {
-    "turbo": "^2.5.8",
+    "@eslint/js": "^9.38.0",
     "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
+    "turbo": "^2.5.8",
     "typescript": "^5.0.0"
   },
   "engines": {
