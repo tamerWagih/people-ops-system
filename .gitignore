@@ -91,3 +91,12 @@ temp/
 
 # Docker
 docker-compose.override.yml
+
+# Turborepo
+.turbo
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Environment files
+env.development
