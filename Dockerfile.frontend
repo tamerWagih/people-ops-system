@@ -14,7 +14,7 @@ COPY . .
 
 # Build only the frontend directly
 WORKDIR /app/frontend
-RUN npm install
+RUN npm install --ignore-scripts
 RUN npx next build
 
 # Go back to root
