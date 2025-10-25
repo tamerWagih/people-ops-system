@@ -14,7 +14,7 @@ COPY . .
 
 # Build only the backend directly
 WORKDIR /app/backend
-RUN npx nest build
+RUN npm run build
 
 # Go back to root
 WORKDIR /app
