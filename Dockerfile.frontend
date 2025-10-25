@@ -14,7 +14,7 @@ COPY . .
 
 # Build only the frontend directly
 WORKDIR /app/frontend
-RUN npm install --timeout=300000 --retry=3
+RUN npm install
 RUN npx next build
 
 # Go back to root
