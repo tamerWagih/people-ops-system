@@ -14,7 +14,7 @@ COPY . .
 
 # Build only the frontend directly
 WORKDIR /app/frontend
-RUN npx next build
+RUN npm run build
 
 # Go back to root
 WORKDIR /app
