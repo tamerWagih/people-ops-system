@@ -1,50 +1,59 @@
-# Frontend Dockerfile for People Operations & Workforce Management System
-# Simplified Next.js build
+# People Operation and Management System - Frontend Dockerfile
+# Optimized for Next.js production build
 
-FROM node:20-alpine
+FROM node:20-alpine AS base
 
-# Install only essential system dependencies
-RUN apk add --no-cache curl
-
-# Set working directory
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy package files
 COPY frontend/package*.json ./
-
-# Install dependencies
 RUN npm install --legacy-peer-deps && npm cache clean --force
 
-# Copy source code
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY frontend/package*.json ./
+RUN npm install --legacy-peer-deps
 COPY frontend/ ./
 
 # Build the application
 RUN npm run build
 
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# Change ownership of the app directory
-RUN chown -R nextjs:nodejs /app
+# Copy built application
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Switch to non-root user
 USER nextjs
 
 # Expose port
 EXPOSE 3000
 
-# Set environment variables
-ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# Set environment variables
 ENV NEXT_PUBLIC_API_URL=http://localhost:4000
 ENV NEXT_PUBLIC_APP_NAME="People Operation and Management"
 ENV NEXT_PUBLIC_APP_VERSION=1.0.0
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --retries=5 \
-    CMD curl -f http://localhost:3000/api/health || exit 1
-
 # Start the application
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
