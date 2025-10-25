@@ -12,8 +12,8 @@ RUN npm ci --ignore-scripts
 # Copy source code
 COPY . .
 
-# Build only the frontend
-RUN npm run build --workspace=frontend
+# Build only the frontend using turbo
+RUN npx turbo run build --filter=frontend
 
 # Expose port
 EXPOSE 3000
