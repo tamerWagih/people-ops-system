@@ -17,7 +17,7 @@ FROM base AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
-COPY ./
+COPY . ./
 
 # Build the application
 RUN npm run build
