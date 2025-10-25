@@ -12,11 +12,11 @@ RUN npm ci --ignore-scripts
 # Copy source code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Build only the backend
+RUN npm run build --workspace=backend
 
 # Expose port
 EXPOSE 4000
 
 # Start the application
-CMD ["npm", "run", "start:prod"]
+CMD ["npm", "run", "start:prod", "--workspace=backend"]

@@ -12,11 +12,11 @@ RUN npm ci --ignore-scripts
 # Copy source code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Build only the frontend
+RUN npm run build --workspace=frontend
 
 # Expose port
 EXPOSE 3000
 
 # Start the application
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start", "--workspace=frontend"]
