@@ -14,9 +14,8 @@ COPY . .
 
 # Build only the backend directly
 WORKDIR /app/backend
-RUN npm install --ignore-scripts
 RUN npm install -g @nestjs/cli
-RUN nest build
+RUN npx nest build
 
 # Go back to root
 WORKDIR /app
