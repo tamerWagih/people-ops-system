@@ -2,6 +2,8 @@
 # This file contains only the database services (postgres, redis, minio)
 # For VM deployment where database is on a separate VM
 
+version: '3.8'
+
 services:
   # PostgreSQL Database
   postgres:
