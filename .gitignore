@@ -100,3 +100,5 @@ docker-compose.override.yml
 
 # Environment files
 env.development
+.env*
+!env.*.template
