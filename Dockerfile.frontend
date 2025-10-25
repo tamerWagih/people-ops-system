@@ -9,15 +9,15 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy package files
-COPY frontend/package*.json ./
+COPY package*.json ./
 RUN npm install --legacy-peer-deps && npm cache clean --force
 
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
-COPY frontend/package*.json ./
+COPY package*.json ./
 RUN npm install --legacy-peer-deps
-COPY frontend/ ./
+COPY ./
 
 # Build the application
 RUN npm run build

@@ -12,13 +12,13 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # Copy package files
-COPY backend/package*.json ./
+COPY package*.json ./
 
 # Install dependencies
 RUN npm install --legacy-peer-deps && npm cache clean --force
 
 # Copy source code
-COPY backend/ ./
+COPY ./
 
 # Install NestJS CLI globally
 RUN npm install -g @nestjs/cli
