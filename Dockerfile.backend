@@ -12,8 +12,12 @@ RUN npm ci --ignore-scripts
 # Copy source code
 COPY . .
 
-# Build only the backend using turbo
-RUN npx turbo run build --filter=backend
+# Build only the backend directly
+WORKDIR /app/backend
+RUN npm run build
+
+# Go back to root
+WORKDIR /app
 
 # Expose port
 EXPOSE 4000
