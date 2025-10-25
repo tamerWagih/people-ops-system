@@ -1,49 +1,68 @@
+# People Operation and Management System - Database Services
+# This file contains only the database services (postgres, redis, minio)
+# For VM deployment where database is on a separate VM
+
+version: '3.8'
+
 services:
+  # PostgreSQL Database
   postgres:
     image: postgres:17-alpine
-    container_name: people-ops-postgres
     ports:
       - '5432:5432'
+    env_file:
+      - .env.db
     environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./database/init:/docker-entrypoint-initdb.d
     networks:
-      - db-network
+      - people-ops-network
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U people_ops -d people_ops_dev" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: people-ops-redis
     ports:
       - '6379:6379'
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
     networks:
-      - db-network
+      - people-ops-network
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # MinIO Object Storage
   minio:
     image: minio/minio:latest
-    container_name: people-ops-minio
     ports:
       - '9000:9000'
       - '9001:9001'
-    environment:
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    env_file:
+      - .env.db
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
     networks:
-      - db-network
+      - people-ops-network
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
 
+# Named volumes for data persistence
 volumes:
   postgres_data:
     driver: local
@@ -52,9 +71,7 @@ volumes:
   minio_data:
     driver: local
 
+# Custom network for service communication
 networks:
-  db-network:
+  people-ops-network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.21.0.0/16
