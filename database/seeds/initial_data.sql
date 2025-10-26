@@ -1,5 +1,5 @@
--- People Operation and Management System - Initial Seed Data
--- Created: October 22, 2025
+-- People Operation and Management System - Initial Seed Data (Normalized Schema)
+-- Created: October 26, 2025
 
 -- =============================================
 -- SEED DEPARTMENTS
@@ -64,7 +64,7 @@ INSERT INTO leave_types (id, name, code, max_days_per_year, requires_approval, i
 ON CONFLICT (code) DO NOTHING;
 
 -- =============================================
--- CREATE SAMPLE EMPLOYEES
+-- CREATE SAMPLE EMPLOYEES (Core Table Only)
 -- =============================================
 
 -- Get department IDs for reference
@@ -74,8 +74,6 @@ DECLARE
     wfm_dept_id UUID;
     ops_dept_id UUID;
     it_dept_id UUID;
-    internal_account_id UUID;
-    cs_lob_id UUID;
 BEGIN
     -- Get department IDs
     SELECT id INTO hr_dept_id FROM departments WHERE name = 'Human Resources' LIMIT 1;
@@ -83,46 +81,213 @@ BEGIN
     SELECT id INTO ops_dept_id FROM departments WHERE name = 'Operations' LIMIT 1;
     SELECT id INTO it_dept_id FROM departments WHERE name = 'IT' LIMIT 1;
     
+    -- Insert sample employees (core table only)
+    INSERT INTO employees (
+        hr_id, full_name_en, national_id, date_of_birth, gender, 
+        department_id, current_title, hiring_date, status, employment_type
+    ) VALUES 
+    ('HR001', 'Ahmed Mohamed', '12345678901234', '1990-05-15', 'Male', 
+     hr_dept_id, 'HR Manager', '2020-01-15', 'Active', 'Full Time'),
+    
+    ('WFM001', 'Sara Ahmed', '23456789012345', '1988-03-22', 'Female',
+     wfm_dept_id, 'WFM Planner', '2019-06-01', 'Active', 'Full Time'),
+    
+    ('OPS001', 'Mohamed Ali', '34567890123456', '1992-11-08', 'Male',
+     ops_dept_id, 'Operations Supervisor', '2021-03-10', 'Active', 'Full Time'),
+    
+    ('IT001', 'Fatma Hassan', '45678901234567', '1985-09-12', 'Female',
+     it_dept_id, 'IT Administrator', '2018-08-20', 'Active', 'Full Time')
+    ON CONFLICT (hr_id) DO NOTHING;
+    
+END $$;
+
+-- =============================================
+-- CREATE EMPLOYEE PERSONAL INFORMATION
+-- =============================================
+DO $$
+DECLARE
+    hr_emp_id UUID;
+    wfm_emp_id UUID;
+    ops_emp_id UUID;
+    it_emp_id UUID;
+BEGIN
+    -- Get employee IDs
+    SELECT id INTO hr_emp_id FROM employees WHERE hr_id = 'HR001' LIMIT 1;
+    SELECT id INTO wfm_emp_id FROM employees WHERE hr_id = 'WFM001' LIMIT 1;
+    SELECT id INTO ops_emp_id FROM employees WHERE hr_id = 'OPS001' LIMIT 1;
+    SELECT id INTO it_emp_id FROM employees WHERE hr_id = 'IT001' LIMIT 1;
+    
+    -- Insert personal information
+    INSERT INTO employee_personal_info (
+        employee_id, graduation_year, major, academic_year,
+        profile, batch_skill, elastix, zoiper_extension, nt, channel,
+        birth_certificate, national_id_copy, education_certificate, 
+        military_certificate, work_book, criminal_record, 
+        insurance_print, personal_photos, form_111, bank_account_form
+    ) VALUES 
+    (hr_emp_id, 2012, 'Business Administration', '2012', 'Manager', 'Management', 'EXT001', 'Z001', 'NT001', 'CH001',
+     true, true, true, true, true, true, true, true, true, true),
+    
+    (wfm_emp_id, 2010, 'Operations Management', '2010', 'Planner', 'WFM', 'EXT002', 'Z002', 'NT002', 'CH002',
+     true, true, true, true, true, true, true, true, true, true),
+    
+    (ops_emp_id, 2014, 'Computer Science', '2014', 'Supervisor', 'Operations', 'EXT003', 'Z003', 'NT003', 'CH003',
+     true, true, true, true, true, true, true, true, true, true),
+    
+    (it_emp_id, 2007, 'Information Technology', '2007', 'Admin', 'IT', 'EXT004', 'Z004', 'NT004', 'CH004',
+     true, true, true, true, true, true, true, true, true, true)
+    ON CONFLICT DO NOTHING;
+    
+END $$;
+
+-- =============================================
+-- CREATE EMPLOYEE CONTACT INFORMATION
+-- =============================================
+DO $$
+DECLARE
+    hr_emp_id UUID;
+    wfm_emp_id UUID;
+    ops_emp_id UUID;
+    it_emp_id UUID;
+BEGIN
+    -- Get employee IDs
+    SELECT id INTO hr_emp_id FROM employees WHERE hr_id = 'HR001' LIMIT 1;
+    SELECT id INTO wfm_emp_id FROM employees WHERE hr_id = 'WFM001' LIMIT 1;
+    SELECT id INTO ops_emp_id FROM employees WHERE hr_id = 'OPS001' LIMIT 1;
+    SELECT id INTO it_emp_id FROM employees WHERE hr_id = 'IT001' LIMIT 1;
+    
+    -- Insert contact information
+    INSERT INTO employee_contact_info (
+        employee_id, phone_1, phone_2, home_address, emergency_contact_no, emergency_contact_degree,
+        personal_email, octopus_email, bpo_email, cci_email, client_email
+    ) VALUES 
+    (hr_emp_id, '01234567890', '01234567891', 'Cairo, Egypt', '01234567892', 'Brother',
+     'ahmed.mohamed@personal.com', 'ahmed.mohamed@octopus.com', 'ahmed.mohamed@bpo.com', 'ahmed.mohamed@cci.com', 'ahmed.mohamed@client.com'),
+    
+    (wfm_emp_id, '01234567893', '01234567894', 'Alexandria, Egypt', '01234567895', 'Sister',
+     'sara.ahmed@personal.com', 'sara.ahmed@octopus.com', 'sara.ahmed@bpo.com', 'sara.ahmed@cci.com', 'sara.ahmed@client.com'),
+    
+    (ops_emp_id, '01234567896', '01234567897', 'Giza, Egypt', '01234567898', 'Father',
+     'mohamed.ali@personal.com', 'mohamed.ali@octopus.com', 'mohamed.ali@bpo.com', 'mohamed.ali@cci.com', 'mohamed.ali@client.com'),
+    
+    (it_emp_id, '01234567899', '01234567900', 'Sharm El Sheikh, Egypt', '01234567901', 'Mother',
+     'fatma.hassan@personal.com', 'fatma.hassan@octopus.com', 'fatma.hassan@bpo.com', 'fatma.hassan@cci.com', 'fatma.hassan@client.com')
+    ON CONFLICT DO NOTHING;
+    
+END $$;
+
+-- =============================================
+-- CREATE EMPLOYEE EMPLOYMENT INFORMATION
+-- =============================================
+DO $$
+DECLARE
+    hr_emp_id UUID;
+    wfm_emp_id UUID;
+    ops_emp_id UUID;
+    it_emp_id UUID;
+    internal_account_id UUID;
+    cs_lob_id UUID;
+BEGIN
+    -- Get employee IDs
+    SELECT id INTO hr_emp_id FROM employees WHERE hr_id = 'HR001' LIMIT 1;
+    SELECT id INTO wfm_emp_id FROM employees WHERE hr_id = 'WFM001' LIMIT 1;
+    SELECT id INTO ops_emp_id FROM employees WHERE hr_id = 'OPS001' LIMIT 1;
+    SELECT id INTO it_emp_id FROM employees WHERE hr_id = 'IT001' LIMIT 1;
+    
     -- Get account and LOB IDs
     SELECT id INTO internal_account_id FROM accounts WHERE name = 'Internal' LIMIT 1;
     SELECT id INTO cs_lob_id FROM lobs WHERE name = 'Customer Service' LIMIT 1;
     
-    -- Insert sample employees
-    INSERT INTO employees (
-        hr_id, full_name_en, national_id, date_of_birth, gender, 
-        department_id, current_title, hiring_date, status, employment_type,
-        business_area, phone_1, personal_email
+    -- Insert employment information
+    INSERT INTO employee_employment_info (
+        employee_id, sub_department, language, first_reporting_line_id, second_reporting_line_id,
+        previous_titles, account_id, lob_id, sub_lob, work_on_site, site,
+        contract_date, certification_date, effective_date, business_area, status_date,
+        internal_external, sf_rooster_fd, batch_no, tenure_days, skill, lts_login_id,
+        attrition_reason, sub_attrition_reason, resignation_date, active_directly, locker_number
     ) VALUES 
-    ('HR001', 'Ahmed Mohamed', '12345678901234', '1990-05-15', 'Male', 
-     hr_dept_id, 'HR Manager', '2020-01-15', 'Active', 'Full Time',
-     'Production', '01234567890', 'ahmed.mohamed@company.com'),
+    (hr_emp_id, 'HR Management', 'English', NULL, NULL, ARRAY['HR Assistant', 'HR Specialist'],
+     internal_account_id, cs_lob_id, 'HR Operations', true, 'Plaza', '2020-01-15', '2020-01-20', '2020-01-15',
+     'Production', '2020-01-15', 'Internal', 'SF001', 'BATCH001', 1500, 'HR Management', 'LTS001',
+     NULL, NULL, NULL, true, 'L001'),
     
-    ('WFM001', 'Sara Ahmed', '23456789012345', '1988-03-22', 'Female',
-     wfm_dept_id, 'WFM Planner', '2019-06-01', 'Active', 'Full Time',
-     'Production', '01234567891', 'sara.ahmed@company.com'),
+    (wfm_emp_id, 'WFM Planning', 'English', hr_emp_id, NULL, ARRAY['WFM Analyst'],
+     internal_account_id, cs_lob_id, 'WFM Operations', true, 'Palm City', '2019-06-01', '2019-06-05', '2019-06-01',
+     'Production', '2019-06-01', 'Internal', 'SF002', 'BATCH002', 2000, 'WFM Planning', 'LTS002',
+     NULL, NULL, NULL, true, 'L002'),
     
-    ('OPS001', 'Mohamed Ali', '34567890123456', '1992-11-08', 'Male',
-     ops_dept_id, 'Operations Supervisor', '2021-03-10', 'Active', 'Full Time',
-     'Production', '01234567892', 'mohamed.ali@company.com'),
+    (ops_emp_id, 'Operations', 'English', hr_emp_id, NULL, ARRAY['Operations Agent'],
+     internal_account_id, cs_lob_id, 'Operations', true, 'Smart Valley', '2021-03-10', '2021-03-15', '2021-03-10',
+     'Production', '2021-03-10', 'Internal', 'SF003', 'BATCH003', 1000, 'Operations', 'LTS003',
+     NULL, NULL, NULL, true, 'L003'),
     
-    ('IT001', 'Fatma Hassan', '45678901234567', '1985-09-12', 'Female',
-     it_dept_id, 'IT Administrator', '2018-08-20', 'Active', 'Full Time',
-     'Production', '01234567893', 'fatma.hassan@company.com')
-    ON CONFLICT (hr_id) DO NOTHING;
+    (it_emp_id, 'IT Support', 'English', hr_emp_id, NULL, ARRAY['IT Technician'],
+     internal_account_id, cs_lob_id, 'IT Operations', true, 'Assiut', '2018-08-20', '2018-08-25', '2018-08-20',
+     'Production', '2018-08-20', 'Internal', 'SF004', 'BATCH004', 2500, 'IT Support', 'LTS004',
+     NULL, NULL, NULL, true, 'L004')
+    ON CONFLICT DO NOTHING;
     
-    -- Set up reporting lines
-    UPDATE employees 
-    SET first_reporting_line_id = (SELECT id FROM employees WHERE hr_id = 'HR001' LIMIT 1)
-    WHERE hr_id IN ('WFM001', 'OPS001');
+END $$;
+
+-- =============================================
+-- CREATE EMPLOYEE INSURANCE INFORMATION
+-- =============================================
+DO $$
+DECLARE
+    hr_emp_id UUID;
+    wfm_emp_id UUID;
+    ops_emp_id UUID;
+    it_emp_id UUID;
+BEGIN
+    -- Get employee IDs
+    SELECT id INTO hr_emp_id FROM employees WHERE hr_id = 'HR001' LIMIT 1;
+    SELECT id INTO wfm_emp_id FROM employees WHERE hr_id = 'WFM001' LIMIT 1;
+    SELECT id INTO ops_emp_id FROM employees WHERE hr_id = 'OPS001' LIMIT 1;
+    SELECT id INTO it_emp_id FROM employees WHERE hr_id = 'IT001' LIMIT 1;
     
-    UPDATE employees 
-    SET first_reporting_line_id = (SELECT id FROM employees WHERE hr_id = 'IT001' LIMIT 1)
-    WHERE hr_id = 'IT001';
+    -- Insert insurance information
+    INSERT INTO employee_insurance_info (
+        employee_id, insurance_title, nda_signed, signing_contract,
+        headset_serial, laptop_serial, laptop_custody_form,
+        insurance_salary, social_insurance_no, social_insurance_date, social_insurance_status, social_insurance_applicable,
+        medical_insurance_applicable, medical_insurance_no, medical_insurance_status, medical_insurance_expiry
+    ) VALUES 
+    (hr_emp_id, 'Manager', true, true, 'HS001', 'LP001', true, 15000.00, 'SI001', '2020-01-15', true, true, true, 'MI001', true, '2025-12-31'),
     
-    -- Set up account and LOB assignments
-    UPDATE employees 
-    SET account_id = internal_account_id, lob_id = cs_lob_id
-    WHERE hr_id IN ('HR001', 'WFM001', 'OPS001', 'IT001');
+    (wfm_emp_id, 'Planner', true, true, 'HS002', 'LP002', true, 12000.00, 'SI002', '2019-06-01', true, true, true, 'MI002', true, '2025-12-31'),
+    
+    (ops_emp_id, 'Supervisor', true, true, 'HS003', 'LP003', true, 10000.00, 'SI003', '2021-03-10', true, true, true, 'MI003', true, '2025-12-31'),
+    
+    (it_emp_id, 'Administrator', true, true, 'HS004', 'LP004', true, 18000.00, 'SI004', '2018-08-20', true, true, true, 'MI004', true, '2025-12-31')
+    ON CONFLICT DO NOTHING;
+    
+END $$;
+
+-- =============================================
+-- CREATE EMPLOYEE BANK INFORMATION
+-- =============================================
+DO $$
+DECLARE
+    hr_emp_id UUID;
+    wfm_emp_id UUID;
+    ops_emp_id UUID;
+    it_emp_id UUID;
+BEGIN
+    -- Get employee IDs
+    SELECT id INTO hr_emp_id FROM employees WHERE hr_id = 'HR001' LIMIT 1;
+    SELECT id INTO wfm_emp_id FROM employees WHERE hr_id = 'WFM001' LIMIT 1;
+    SELECT id INTO ops_emp_id FROM employees WHERE hr_id = 'OPS001' LIMIT 1;
+    SELECT id INTO it_emp_id FROM employees WHERE hr_id = 'IT001' LIMIT 1;
+    
+    -- Insert bank information
+    INSERT INTO employee_bank_info (
+        employee_id, bank_account_number, salary
+    ) VALUES 
+    (hr_emp_id, '12345678901234567890', 15000.00),
+    (wfm_emp_id, '12345678901234567891', 12000.00),
+    (ops_emp_id, '12345678901234567892', 10000.00),
+    (it_emp_id, '12345678901234567893', 18000.00)
+    ON CONFLICT DO NOTHING;
     
 END $$;
 
@@ -223,6 +388,7 @@ LIMIT 1;
 -- =============================================
 
 -- Verify data was inserted correctly
+SELECT 'Database seeded successfully!' as status;
 SELECT 'Departments' as table_name, COUNT(*) as count FROM departments
 UNION ALL
 SELECT 'Accounts', COUNT(*) FROM accounts
@@ -234,6 +400,16 @@ UNION ALL
 SELECT 'Leave Types', COUNT(*) FROM leave_types
 UNION ALL
 SELECT 'Employees', COUNT(*) FROM employees
+UNION ALL
+SELECT 'Employee Personal Info', COUNT(*) FROM employee_personal_info
+UNION ALL
+SELECT 'Employee Contact Info', COUNT(*) FROM employee_contact_info
+UNION ALL
+SELECT 'Employee Employment Info', COUNT(*) FROM employee_employment_info
+UNION ALL
+SELECT 'Employee Insurance Info', COUNT(*) FROM employee_insurance_info
+UNION ALL
+SELECT 'Employee Bank Info', COUNT(*) FROM employee_bank_info
 UNION ALL
 SELECT 'Leave Balances', COUNT(*) FROM employee_leave_balances
 UNION ALL
