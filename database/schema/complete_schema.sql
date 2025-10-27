@@ -1,9 +1,98 @@
--- People Operation and Management System - Complete Database Schema (Normalized)
--- Separated employee tables for better performance and maintainability
--- Created: October 26, 2025
+-- People Operation and Management System - Complete Database Schema (Updated)
+-- Based on comprehensive analysis of all Requirements files
+-- Updated: October 27, 2025
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- =============================================
+-- AUTHENTICATION SYSTEM
+-- =============================================
+
+-- Users table for authentication
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    is_verified BOOLEAN DEFAULT false,
+    last_login TIMESTAMP WITH TIME ZONE,
+    failed_login_attempts INTEGER DEFAULT 0,
+    locked_until TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_by UUID,
+    updated_by UUID
+);
+
+-- Roles table
+CREATE TABLE roles (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Permissions table
+CREATE TABLE permissions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) UNIQUE NOT NULL,
+    description TEXT,
+    module VARCHAR(50) NOT NULL, -- HR, WFM, ADMIN, etc.
+    action VARCHAR(50) NOT NULL, -- CREATE, READ, UPDATE, DELETE
+    resource VARCHAR(50) NOT NULL, -- EMPLOYEE, SCHEDULE, etc.
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- User roles (many-to-many)
+CREATE TABLE user_roles (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    role_id UUID REFERENCES roles(id) ON DELETE CASCADE,
+    assigned_by UUID REFERENCES users(id),
+    assigned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    expires_at TIMESTAMP WITH TIME ZONE,
+    UNIQUE(user_id, role_id)
+);
+
+-- Role permissions (many-to-many)
+CREATE TABLE role_permissions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    role_id UUID REFERENCES roles(id) ON DELETE CASCADE,
+    permission_id UUID REFERENCES permissions(id) ON DELETE CASCADE,
+    granted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    granted_by UUID REFERENCES users(id),
+    UNIQUE(role_id, permission_id)
+);
+
+-- User sessions
+CREATE TABLE user_sessions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    session_token VARCHAR(255) UNIQUE NOT NULL,
+    ip_address INET,
+    user_agent TEXT,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    last_activity TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Login logs
+CREATE TABLE login_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id),
+    username VARCHAR(50),
+    ip_address INET,
+    user_agent TEXT,
+    login_successful BOOLEAN NOT NULL,
+    failure_reason VARCHAR(100),
+    login_time TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
 -- =============================================
 -- CORE EMPLOYEE TABLE (Basic Info Only)
@@ -74,6 +163,12 @@ CREATE TABLE employee_personal_info (
     form_111 BOOLEAN DEFAULT false,
     bank_account_form BOOLEAN DEFAULT false,
     
+    -- Asset Information
+    headset_serial VARCHAR(100),
+    laptop_serial VARCHAR(100),
+    yubikey_serial VARCHAR(100),
+    locker_number VARCHAR(20),
+    
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -98,6 +193,7 @@ CREATE TABLE employee_contact_info (
     bpo_email VARCHAR(255),
     cci_email VARCHAR(255),
     client_email VARCHAR(255),
+    m360_email VARCHAR(255),
     
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -144,7 +240,6 @@ CREATE TABLE employee_employment_info (
     -- Resignation Information
     resignation_date DATE,
     active_directly BOOLEAN DEFAULT true,
-    locker_number VARCHAR(20),
     
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -200,6 +295,85 @@ CREATE TABLE employee_bank_info (
 );
 
 -- =============================================
+-- ASSET MANAGEMENT
+-- =============================================
+CREATE TABLE asset_management (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    employee_id UUID REFERENCES employees(id) ON DELETE CASCADE,
+    asset_type VARCHAR(50) NOT NULL, -- Headset, Laptop, Yubikey, Access ID, etc.
+    asset_serial VARCHAR(100),
+    asset_model VARCHAR(100),
+    assigned_date DATE NOT NULL,
+    return_date DATE,
+    status VARCHAR(20) DEFAULT 'Assigned' CHECK (status IN ('Assigned', 'Returned', 'Lost', 'Damaged')),
+    notes TEXT,
+    assigned_by UUID REFERENCES users(id),
+    returned_by UUID REFERENCES users(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- =============================================
+-- CLEARANCE PROCESS
+-- =============================================
+CREATE TABLE clearance_process (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    employee_id UUID REFERENCES employees(id) ON DELETE CASCADE,
+    clearance_date DATE NOT NULL,
+    status VARCHAR(20) DEFAULT 'In Progress' CHECK (status IN ('In Progress', 'Completed', 'Pending')),
+    initiated_by UUID REFERENCES users(id),
+    completed_by UUID REFERENCES users(id),
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Clearance process items
+CREATE TABLE clearance_process_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    clearance_process_id UUID REFERENCES clearance_process(id) ON DELETE CASCADE,
+    asset_type VARCHAR(50) NOT NULL,
+    asset_serial VARCHAR(100),
+    status VARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending', 'Returned', 'Lost', 'Damaged')),
+    notes TEXT,
+    returned_date DATE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- =============================================
+-- EXIT INTERVIEWS
+-- =============================================
+CREATE TABLE exit_interviews (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    employee_id UUID REFERENCES employees(id) ON DELETE CASCADE,
+    interview_date DATE NOT NULL,
+    interviewer_id UUID REFERENCES users(id),
+    
+    -- Satisfaction Ratings (1-5 scale)
+    work_environment_rating INTEGER CHECK (work_environment_rating BETWEEN 1 AND 5),
+    management_rating INTEGER CHECK (management_rating BETWEEN 1 AND 5),
+    workload_rating INTEGER CHECK (workload_rating BETWEEN 1 AND 5),
+    compensation_rating INTEGER CHECK (compensation_rating BETWEEN 1 AND 5),
+    career_development_rating INTEGER CHECK (career_development_rating BETWEEN 1 AND 5),
+    
+    -- Reasons for leaving
+    primary_reason VARCHAR(100),
+    secondary_reason VARCHAR(100),
+    other_reasons TEXT,
+    
+    -- Work conditions feedback
+    work_conditions_feedback TEXT,
+    suggestions TEXT,
+    
+    -- Overall feedback
+    overall_feedback TEXT,
+    would_recommend BOOLEAN,
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- =============================================
 -- SUPPORTING TABLES
 -- =============================================
 
@@ -242,6 +416,18 @@ CREATE TABLE activity_codes (
     description TEXT,
     is_productive BOOLEAN DEFAULT true,
     color VARCHAR(7),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Shift Templates
+CREATE TABLE shift_templates (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) NOT NULL,
+    shift_start TIME NOT NULL,
+    shift_end TIME NOT NULL,
+    break_duration INTEGER DEFAULT 0, -- in minutes
+    is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -384,6 +570,18 @@ CREATE TABLE capacity_plan_details (
 -- NOTIFICATION SYSTEM
 -- =============================================
 
+-- Notification Templates
+CREATE TABLE notification_templates (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    template_name VARCHAR(100) UNIQUE NOT NULL,
+    notification_type VARCHAR(50) NOT NULL,
+    subject_template TEXT NOT NULL,
+    body_template TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Notifications
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -481,6 +679,14 @@ ALTER TABLE employee_employment_info ADD CONSTRAINT fk_employment_lob
 -- INDEXES FOR PERFORMANCE
 -- =============================================
 
+-- Authentication indexes
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_user_sessions_token ON user_sessions(session_token);
+CREATE INDEX idx_user_sessions_user_id ON user_sessions(user_id);
+CREATE INDEX idx_login_logs_user_id ON login_logs(user_id);
+CREATE INDEX idx_login_logs_login_time ON login_logs(login_time);
+
 -- Employee indexes
 CREATE INDEX idx_employees_hr_id ON employees(hr_id);
 CREATE INDEX idx_employees_national_id ON employees(national_id);
@@ -493,6 +699,11 @@ CREATE INDEX idx_employee_contact_info_employee ON employee_contact_info(employe
 CREATE INDEX idx_employee_employment_info_employee ON employee_employment_info(employee_id);
 CREATE INDEX idx_employee_insurance_info_employee ON employee_insurance_info(employee_id);
 CREATE INDEX idx_employee_bank_info_employee ON employee_bank_info(employee_id);
+
+-- Asset management indexes
+CREATE INDEX idx_asset_management_employee ON asset_management(employee_id);
+CREATE INDEX idx_asset_management_type ON asset_management(asset_type);
+CREATE INDEX idx_asset_management_status ON asset_management(status);
 
 -- Schedule indexes
 CREATE INDEX idx_agent_schedules_employee_date ON agent_schedules(employee_id, schedule_date);
@@ -581,6 +792,7 @@ SELECT
     eci.phone_2,
     eci.personal_email,
     eci.octopus_email,
+    eci.m360_email,
     
     -- Employment info
     eei.sub_department,
