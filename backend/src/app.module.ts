@@ -16,7 +16,7 @@ import { UserModule } from './users/user.module';
       useFactory: () => ({
         type: 'postgres',
         host: process.env.DATABASE_HOST || 'localhost',
-        port: parseInt(process.env.DATABASE_PORT) || 5432,
+        port: parseInt(process.env.DATABASE_PORT || '5432'),
         username: process.env.DATABASE_USERNAME || 'people_ops',
         password: process.env.DATABASE_PASSWORD || 'password',
         database: process.env.DATABASE_NAME || 'people_ops_dev',
