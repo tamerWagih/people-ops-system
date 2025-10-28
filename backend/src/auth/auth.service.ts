@@ -47,7 +47,7 @@ export class AuthService {
     const mockUser = {
       id: '1',
       email: 'admin@example.com',
-      password: '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LeHdKz8z8z8z8z8z8z', // 'password123'
+      password: '$2b$12$.JH1ZzH1E.ghESHGWDPwGuN8Oo7vhc7kuW256PFju5m3NZOdDtatC', // 'password123'
       firstName: 'Admin',
       lastName: 'User',
       roles: ['System_Admin'],
