@@ -8,6 +8,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { PasswordService } from './password.service';
 import { SessionService } from './session.service';
+import { UserModule } from '../users/user.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { SessionService } from './session.service';
       }),
       inject: [ConfigService],
     }),
+    UserModule,
   ],
   providers: [
     AuthService,

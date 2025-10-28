@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { PasswordService } from './password.service';
 import { SessionService } from './session.service';
+import { UserService } from '../users/user.service';
 
 export interface LoginDto {
   email: string;
@@ -36,43 +37,35 @@ export class AuthService {
     private readonly passwordService: PasswordService,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private readonly sessionService: SessionService,
+    private readonly userService: UserService,
   ) {}
 
   /**
    * Validate user credentials
    */
   async validateUser(email: string, password: string): Promise<any> {
-    // TODO: Replace with actual database query
-    // For now, we'll use mock data
-    const mockUser = {
-      id: '1',
-      email: 'admin@example.com',
-      password: '$2b$12$.JH1ZzH1E.ghESHGWDPwGuN8Oo7vhc7kuW256PFju5m3NZOdDtatC', // 'password123'
-      firstName: 'Admin',
-      lastName: 'User',
-      roles: ['System_Admin'],
-      isActive: true,
-    };
+    // Find user in database
+    const user = await this.userService.findByEmail(email);
 
-    if (mockUser.email !== email) {
+    if (!user) {
       return null;
     }
 
-    const isPasswordValid = await this.passwordService.comparePassword(
-      password,
-      mockUser.password,
-    );
+    const isPasswordValid = await user.comparePassword(password);
 
     if (!isPasswordValid) {
       return null;
     }
 
-    if (!mockUser.isActive) {
+    if (!user.isActive) {
       throw new UnauthorizedException('Account is deactivated');
     }
 
-    // Remove password from returned object
-    const { password: _, ...result } = mockUser;
+    // Update last login
+    await this.userService.updateLastLogin(user.id);
+
+    // Return user without password
+    const { password: _, ...result } = user;
     return result;
   }
 
@@ -127,20 +120,14 @@ export class AuthService {
       });
     }
 
-    // TODO: Check if user already exists
-    // TODO: Create user in database
-
-    await this.passwordService.hashPassword(registerDto.password);
-    
-    // Mock user creation
-    const newUser = {
-      id: '2',
+    // Create user in database
+    const newUser = await this.userService.create({
       email: registerDto.email,
+      password: registerDto.password,
       firstName: registerDto.firstName,
       lastName: registerDto.lastName,
-      roles: registerDto.roles || ['Employee'],
-      isActive: true,
-    };
+      roleIds: registerDto.roles ? await this.getRoleIdsByName(registerDto.roles) : [],
+    });
 
     const sessionId = this.sessionService.generateSessionId();
     const { accessToken, refreshToken } = this.sessionService.generateTokenPair(
@@ -151,7 +138,13 @@ export class AuthService {
     );
 
     return {
-      user: newUser,
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        roles: newUser.roles,
+      },
       accessToken,
       refreshToken,
       expiresIn: 15 * 60,
@@ -209,17 +202,11 @@ export class AuthService {
     currentPassword: string,
     newPassword: string,
   ): Promise<void> {
-    // TODO: Get user from database
-    const user = {
-      id: userId,
-      password: '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LeHdKz8z8z8z8z8z8z',
-    };
+    // Get user from database
+    const user = await this.userService.findById(userId);
 
     // Verify current password
-    const isCurrentPasswordValid = await this.passwordService.comparePassword(
-      currentPassword,
-      user.password,
-    );
+    const isCurrentPasswordValid = await user.comparePassword(currentPassword);
 
     if (!isCurrentPasswordValid) {
       throw new UnauthorizedException('Current password is incorrect');
@@ -234,10 +221,16 @@ export class AuthService {
       });
     }
 
-    // Hash new password
-    await this.passwordService.hashPassword(newPassword);
-    
-    // TODO: Update password in database
-    console.log(`Password changed for user: ${userId}`);
+    // Update password in database
+    await this.userService.updatePassword(userId, newPassword);
+  }
+
+  /**
+   * Helper method to get role IDs by names
+   */
+  private async getRoleIdsByName(roleNames: string[]): Promise<string[]> {
+    // This would need to be implemented in UserService
+    // For now, return empty array
+    return [];
   }
 }
