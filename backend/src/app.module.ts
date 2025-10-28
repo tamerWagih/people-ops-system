@@ -21,7 +21,7 @@ import { UserModule } from './users/user.module';
         password: process.env.DATABASE_PASSWORD || 'password',
         database: process.env.DATABASE_NAME || 'people_ops_dev',
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: process.env.NODE_ENV === 'development',
+        synchronize: false, // Disable auto-sync, use migrations instead
         logging: process.env.NODE_ENV === 'development',
       }),
     }),
