@@ -359,92 +359,92 @@ BEGIN
     (ops_emp_id, '12345678901234567892', 10000.00),
     (it_emp_id, '12345678901234567893', 18000.00);
 
-    -- =============================================
-    -- CREATE SAMPLE LEAVE BALANCES
-    -- =============================================
-    INSERT INTO employee_leave_balances (employee_id, leave_type_id, year, total_days)
-    SELECT 
-        e.id,
-        lt.id,
-        2025,
-        lt.max_days_per_year
-    FROM employees e
-    CROSS JOIN leave_types lt
+-- =============================================
+-- CREATE SAMPLE LEAVE BALANCES
+-- =============================================
+INSERT INTO employee_leave_balances (employee_id, leave_type_id, year, total_days)
+SELECT 
+    e.id,
+    lt.id,
+    2025,
+    lt.max_days_per_year
+FROM employees e
+CROSS JOIN leave_types lt
     WHERE e.is_deleted = false;
 
-    -- =============================================
-    -- CREATE SAMPLE NOTIFICATION SETTINGS
-    -- =============================================
-    INSERT INTO notification_settings (employee_id, notification_type, days_before, is_enabled, email_enabled)
-    SELECT 
-        e.id,
-        'CONTRACT_EXPIRY',
-        45,
-        true,
-        true
-    FROM employees e
+-- =============================================
+-- CREATE SAMPLE NOTIFICATION SETTINGS
+-- =============================================
+INSERT INTO notification_settings (employee_id, notification_type, days_before, is_enabled, email_enabled)
+SELECT 
+    e.id,
+    'CONTRACT_EXPIRY',
+    45,
+    true,
+    true
+FROM employees e
     WHERE e.is_deleted = false;
 
-    INSERT INTO notification_settings (employee_id, notification_type, days_before, is_enabled, email_enabled)
-    SELECT 
-        e.id,
-        'DOCUMENT_EXPIRY',
-        7,
-        true,
-        true
-    FROM employees e
+INSERT INTO notification_settings (employee_id, notification_type, days_before, is_enabled, email_enabled)
+SELECT 
+    e.id,
+    'DOCUMENT_EXPIRY',
+    7,
+    true,
+    true
+FROM employees e
     WHERE e.is_deleted = false;
 
-    INSERT INTO notification_settings (employee_id, notification_type, days_before, is_enabled, email_enabled)
-    SELECT 
-        e.id,
-        'RESIGNATION',
-        0,
-        true,
-        true
-    FROM employees e
+INSERT INTO notification_settings (employee_id, notification_type, days_before, is_enabled, email_enabled)
+SELECT 
+    e.id,
+    'RESIGNATION',
+    0,
+    true,
+    true
+FROM employees e
     WHERE e.is_deleted = false;
 
-    -- =============================================
-    -- CREATE SAMPLE SCHEDULES (for testing)
-    -- =============================================
-    INSERT INTO agent_schedules (employee_id, schedule_date, shift_start, shift_end, activity_code_id)
-    SELECT 
-        e.id,
-        CURRENT_DATE + INTERVAL '1 day',
-        '09:00:00',
-        '17:00:00',
-        ac.id
-    FROM employees e
-    CROSS JOIN activity_codes ac
-    WHERE e.hr_id = 'OPS001' 
+-- =============================================
+-- CREATE SAMPLE SCHEDULES (for testing)
+-- =============================================
+INSERT INTO agent_schedules (employee_id, schedule_date, shift_start, shift_end, activity_code_id)
+SELECT 
+    e.id,
+    CURRENT_DATE + INTERVAL '1 day',
+    '09:00:00',
+    '17:00:00',
+    ac.id
+FROM employees e
+CROSS JOIN activity_codes ac
+WHERE e.hr_id = 'OPS001' 
         AND ac.code = 'AVAIL';
 
-    -- =============================================
-    -- CREATE SAMPLE CLIENT REQUIREMENTS
-    -- =============================================
-    INSERT INTO client_requirements (client_name, account_id, lob_id, requirement_date, interval_type, total_requirements)
-    SELECT 
-        'Sample Client',
-        a.id,
-        l.id,
-        CURRENT_DATE + INTERVAL '1 day',
-        '30min',
-        10
-    FROM accounts a, lobs l
+-- =============================================
+-- CREATE SAMPLE CLIENT REQUIREMENTS
+-- =============================================
+INSERT INTO client_requirements (client_name, account_id, lob_id, requirement_date, interval_type, total_requirements)
+SELECT 
+    'Sample Client',
+    a.id,
+    l.id,
+    CURRENT_DATE + INTERVAL '1 day',
+    '30min',
+    10
+FROM accounts a, lobs l
     WHERE a.name = 'Talabat' AND l.name = 'Customer Care'
-    LIMIT 1;
+LIMIT 1;
 
-    -- Create requirement intervals
-    INSERT INTO client_requirement_intervals (client_requirement_id, interval_start, interval_end, required_agents)
-    SELECT 
-        cr.id,
-        '09:00:00',
-        '09:30:00',
-        5
-    FROM client_requirements cr
-    WHERE cr.client_name = 'Sample Client'
-    LIMIT 1;
+-- Create requirement intervals
+INSERT INTO client_requirement_intervals (client_requirement_id, interval_start, interval_end, required_agents)
+SELECT 
+    cr.id,
+    '09:00:00',
+    '09:30:00',
+    5
+FROM client_requirements cr
+WHERE cr.client_name = 'Sample Client'
+LIMIT 1;
     
 END $$;
 

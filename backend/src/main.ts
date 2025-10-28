@@ -1,8 +1,16 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  // Global validation pipe
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  }));
   
   // Add health endpoint
   app.getHttpAdapter().get('/health', (req, res) => {
@@ -22,6 +30,7 @@ async function bootstrap() {
   const port = process.env.PORT || 4000;
   await app.listen(port);
   console.log(`🚀 Backend server running on port ${port}`);
+  console.log(`🔐 Authentication endpoints available at http://localhost:${port}/auth`);
 }
 
 bootstrap();
