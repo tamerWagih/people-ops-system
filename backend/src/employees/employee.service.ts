@@ -16,9 +16,9 @@ export class EmployeeService {
 
   async create(dto: CreateEmployeeDto, actorId?: string, ip?: string, ua?: string): Promise<Employee> {
     // Check unique fields
-    const exists = await this.employeeRepository.findOne({ where: [{ employeeId: dto.employeeId }, { email: dto.email }, { nationalId: dto.nationalId }] });
+    const exists = await this.employeeRepository.findOne({ where: [{ employeeId: dto.employeeId }, { nationalId: dto.nationalId }] });
     if (exists) {
-      throw new ConflictException('Employee with same ID/email/nationalId already exists');
+      throw new ConflictException('Employee with same ID/nationalId already exists');
     }
     const entity = this.employeeRepository.create(dto);
     const saved = await this.employeeRepository.save(entity);
@@ -30,7 +30,7 @@ export class EmployeeService {
     const qb = this.employeeRepository.createQueryBuilder('e');
     if (search) {
       qb.where(
-        'e.firstName ILIKE :s OR e.lastName ILIKE :s OR e.employeeId ILIKE :s OR e.department ILIKE :s',
+        'e.firstName ILIKE :s OR e.lastName ILIKE :s OR e.employeeId ILIKE :s OR e.department ILIKE :s OR e.position ILIKE :s',
         { s: `%${search}%` }
       );
     }
