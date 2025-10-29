@@ -15,10 +15,10 @@ export class EmployeeService {
   ) {}
 
   async create(dto: CreateEmployeeDto, actorId?: string, ip?: string, ua?: string): Promise<Employee> {
-    // Check unique fields
-    const exists = await this.employeeRepository.findOne({ where: [{ employeeId: dto.employeeId }, { nationalId: dto.nationalId }] });
+    // Check unique fields (only nationalId since employeeId is auto-generated)
+    const exists = await this.employeeRepository.findOne({ where: { nationalId: dto.nationalId } });
     if (exists) {
-      throw new ConflictException('Employee with same ID/nationalId already exists');
+      throw new ConflictException('Employee with same nationalId already exists');
     }
     const entity = this.employeeRepository.create(dto);
     const saved = await this.employeeRepository.save(entity);

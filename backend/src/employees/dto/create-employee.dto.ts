@@ -1,9 +1,9 @@
-import { IsString, IsEmail, IsOptional, IsDateString, IsEnum, IsBoolean, Length } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsDateString, IsEnum, IsBoolean, IsNumber, Length } from 'class-validator';
 
 export class CreateEmployeeDto {
-  @IsString()
-  @Length(1, 50)
-  employeeId: string; // hr_id
+  @IsOptional()
+  @IsNumber()
+  employeeId?: number; // hr_id - auto-generated if not provided
 
   @IsString()
   @Length(1, 255)
