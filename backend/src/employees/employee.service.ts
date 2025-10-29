@@ -30,7 +30,7 @@ export class EmployeeService {
     const qb = this.employeeRepository.createQueryBuilder('e');
     if (search) {
       qb.where(
-        'e.firstName ILIKE :s OR e.lastName ILIKE :s OR e.employeeId ILIKE :s OR e.department ILIKE :s OR e.position ILIKE :s',
+        'e.firstName ILIKE :s OR e.employeeId::text ILIKE :s OR e.position ILIKE :s OR e.nationalId ILIKE :s',
         { s: `%${search}%` }
       );
     }
