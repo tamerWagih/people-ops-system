@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/
 import { PasswordService } from './password.service';
 import { SessionService } from './session.service';
 import { UserService } from '../users/user.service';
+import { LoginLogService } from './login-log.service';
 
 export interface LoginDto {
   email: string;
@@ -33,38 +34,79 @@ export interface AuthResult {
 @Injectable()
 export class AuthService {
   constructor(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private readonly passwordService: PasswordService,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private readonly sessionService: SessionService,
     private readonly userService: UserService,
+    private readonly loginLogService: LoginLogService,
   ) {}
 
   /**
    * Validate user credentials
    */
-  async validateUser(email: string, password: string): Promise<any> {
+  async validateUser(
+    email: string,
+    password: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<any> {
     // Find user in database
     const user = await this.userService.findByEmail(email);
 
     if (!user) {
+      // Log failed login attempt
+      await this.loginLogService.logLoginAttempt(
+        null,
+        email,
+        ipAddress || null,
+        userAgent || null,
+        false,
+        'User not found',
+      );
       return null;
     }
 
     const isPasswordValid = await user.comparePassword(password);
 
     if (!isPasswordValid) {
+      // Log failed login attempt
+      await this.loginLogService.logLoginAttempt(
+        user.id,
+        email,
+        ipAddress || null,
+        userAgent || null,
+        false,
+        'Invalid password',
+      );
       return null;
     }
 
     if (!user.isActive) {
+      // Log failed login attempt
+      await this.loginLogService.logLoginAttempt(
+        user.id,
+        email,
+        ipAddress || null,
+        userAgent || null,
+        false,
+        'Account deactivated',
+      );
       throw new UnauthorizedException('Account is deactivated');
     }
 
     // Update last login
     await this.userService.updateLastLogin(user.id);
 
+    // Log successful login
+    await this.loginLogService.logLoginAttempt(
+      user.id,
+      email,
+      ipAddress || null,
+      userAgent || null,
+      true,
+    );
+
     // Return user without password
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = user;
     return result;
   }
@@ -72,8 +114,8 @@ export class AuthService {
   /**
    * Login user
    */
-  async login(loginDto: LoginDto): Promise<AuthResult> {
-    const user = await this.validateUser(loginDto.email, loginDto.password);
+  async login(loginDto: LoginDto, ipAddress?: string, userAgent?: string): Promise<AuthResult> {
+    const user = await this.validateUser(loginDto.email, loginDto.password, ipAddress, userAgent);
     
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -228,7 +270,7 @@ export class AuthService {
   /**
    * Helper method to get role IDs by names
    */
-  private async getRoleIdsByName(roleNames: string[]): Promise<string[]> {
+  private async getRoleIdsByName(_roleNames: string[]): Promise<string[]> {
     // This would need to be implemented in UserService
     // For now, return empty array
     return [];

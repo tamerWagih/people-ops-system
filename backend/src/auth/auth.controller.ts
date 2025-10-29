@@ -16,7 +16,6 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 @Controller('auth')
 export class AuthController {
   constructor(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private readonly authService: AuthService,
   ) {}
 
@@ -25,8 +24,10 @@ export class AuthController {
    */
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  async login(@Body() loginDto: LoginDto, @Request() req) {
+    const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+    return this.authService.login(loginDto, ipAddress, userAgent);
   }
 
   /**
