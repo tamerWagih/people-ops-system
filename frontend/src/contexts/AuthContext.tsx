@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               // Token invalid, clear cookies
               clearAuthData();
             }
-          } catch (error) {
+          } catch {
             // Token validation failed, clear cookies
             clearAuthData();
           }

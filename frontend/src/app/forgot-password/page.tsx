@@ -23,7 +23,7 @@ const PasswordResetPage: React.FC = () => {
     },
   });
 
-  const onSubmit = async (formData: PasswordResetFormData) => {
+  const onSubmit = async () => {
     try {
       setIsSubmitting(true);
       

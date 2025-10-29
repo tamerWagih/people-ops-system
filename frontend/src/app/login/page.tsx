@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
-import { useAuth } from '../contexts/AuthContext';
-import { LoginRequest } from '../types/auth';
+import { useAuth } from '../../contexts/AuthContext';
+import { LoginRequest } from '../../types/auth';
 
 interface LoginFormData {
   email: string;

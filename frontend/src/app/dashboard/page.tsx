@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import ProtectedRoute from '../components/ProtectedRoute';
+import { useAuth } from '../../contexts/AuthContext';
+import ProtectedRoute from '../../components/ProtectedRoute';
 
 const DashboardPage: React.FC = () => {
   const { user, logout } = useAuth();

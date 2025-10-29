@@ -53,6 +53,7 @@ apiClient.interceptors.response.use(
         Cookies.remove(REFRESH_TOKEN_KEY);
         Cookies.remove(USER_KEY);
         if (typeof window !== 'undefined') {
+          // eslint-disable-next-line no-undef
           window.location.href = '/login';
         }
       }
