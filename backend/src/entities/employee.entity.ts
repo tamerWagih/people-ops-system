@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  Generated,
 } from 'typeorm';
 
 @Entity('employees')
@@ -13,7 +14,8 @@ export class Employee {
   id: string;
 
   @Index('idx_employees_hr_id', { unique: true })
-  @Column({ name: 'hr_id', type: 'serial', unique: true, nullable: true })
+  @Generated('increment')
+  @Column({ name: 'hr_id', type: 'int', unique: true, nullable: true })
   employeeId?: number; // Maps to hr_id in database - auto-incrementing
 
   @CreateDateColumn({ name: 'created_at' })
