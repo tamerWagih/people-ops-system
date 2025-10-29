@@ -28,7 +28,11 @@ const DashboardPage: React.FC = () => {
                   Welcome, <span className="font-medium">{user?.firstName || 'User'} {user?.lastName || ''}</span>
                 </div>
                 <div className="text-xs text-gray-500">
-                  Role: {user?.roles?.[0] || 'Loading...'}
+                  Role: {user?.roles?.[0] || 'No roles assigned'}
+                </div>
+                {/* Debug info - remove in production */}
+                <div className="text-xs text-gray-400">
+                  ID: {user?.id ? user.id.substring(0, 8) + '...' : 'N/A'}
                 </div>
                 <button
                   onClick={handleLogout}

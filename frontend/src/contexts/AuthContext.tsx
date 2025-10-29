@@ -26,24 +26,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const userData = Cookies.get(USER_KEY);
 
         if (token && userData) {
-          // Validate token with backend
           try {
-            const response = await authAPI.validateToken();
-            if (response.valid) {
-              setUser(response.user);
-            } else {
-              // Token invalid, clear cookies
-              clearAuthData();
+            // Parse stored user data as fallback
+            const storedUser = JSON.parse(userData);
+            
+            // Try to validate token with backend
+            try {
+              const response = await authAPI.validateToken();
+              if (response.valid && response.user) {
+                setUser(response.user);
+              } else {
+                // Token invalid, use stored data as fallback
+                setUser(storedUser);
+              }
+            } catch {
+              // Backend validation failed, use stored data as fallback
+              setUser(storedUser);
             }
           } catch {
-            // Token validation failed, clear cookies
+            // Stored data is invalid, clear everything
             clearAuthData();
           }
+        } else {
+          // No token or user data, clear everything
+          clearAuthData();
         }
-    } catch {
-      console.error('Auth initialization error');
-      clearAuthData();
-    } finally {
+      } catch {
+        console.error('Auth initialization error');
+        clearAuthData();
+      } finally {
         setIsLoading(false);
       }
     };
@@ -63,6 +74,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       const response = await authAPI.login(credentials);
 
+      // Ensure user data has all required fields
+      const userData = {
+        id: response.user.id,
+        email: response.user.email,
+        firstName: response.user.firstName,
+        lastName: response.user.lastName,
+        roles: response.user.roles || [],
+      };
+
       // Store tokens and user data
       Cookies.set(TOKEN_KEY, response.accessToken, { 
         expires: credentials.rememberMe ? 30 : 1 // 30 days or 1 day
@@ -70,12 +90,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       Cookies.set(REFRESH_TOKEN_KEY, response.refreshToken, { 
         expires: 7 // 7 days
       });
-      Cookies.set(USER_KEY, JSON.stringify(response.user), { 
+      Cookies.set(USER_KEY, JSON.stringify(userData), { 
         expires: credentials.rememberMe ? 30 : 1
       });
 
-      setUser(response.user);
-      toast.success(`Welcome back, ${response.user.firstName}!`);
+      setUser(userData);
+      toast.success(`Welcome back, ${userData.firstName}!`);
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Login failed';
       toast.error(errorMessage);
