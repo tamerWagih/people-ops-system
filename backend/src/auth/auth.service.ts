@@ -34,13 +34,9 @@ export interface AuthResult {
 @Injectable()
 export class AuthService {
   constructor(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private readonly passwordService: PasswordService,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private readonly sessionService: SessionService,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private readonly userService: UserService,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private readonly loginLogService: LoginLogService,
   ) {}
 

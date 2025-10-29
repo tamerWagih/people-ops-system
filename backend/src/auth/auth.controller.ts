@@ -7,16 +7,19 @@ import {
   HttpCode,
   HttpStatus,
   Get,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService, LoginDto, RegisterDto } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UserService } from '../users/user.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly userService: UserService,
   ) {}
 
   /**
@@ -94,9 +97,22 @@ export class AuthController {
   @Get('validate')
   @UseGuards(JwtAuthGuard)
   async validateToken(@Request() req) {
+    // Get full user data from database
+    const user = await this.userService.findById(req.user.userId);
+    
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
     return {
       valid: true,
-      user: req.user,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        roles: user.roles,
+      },
     };
   }
 }

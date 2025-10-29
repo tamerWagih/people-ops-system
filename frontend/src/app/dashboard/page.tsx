@@ -9,6 +9,9 @@ const DashboardPage: React.FC = () => {
 
   // Debug: Log user data
   console.log('Dashboard user data:', user);
+  console.log('User ID:', user?.id);
+  console.log('User roles:', user?.roles);
+  console.log('User name:', user?.firstName, user?.lastName);
 
   const handleLogout = () => {
     logout();

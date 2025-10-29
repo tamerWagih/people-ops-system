@@ -32,6 +32,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             
             // Debug: Log stored user data
             console.log('Stored user data on init:', storedUser);
+            console.log('Stored user ID:', storedUser?.id);
+            console.log('Stored user roles:', storedUser?.roles);
+            console.log('Stored user name:', storedUser?.firstName, storedUser?.lastName);
             
             // First, set the stored user data immediately to avoid loading states
             setUser(storedUser);
@@ -42,6 +45,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               if (response.valid && response.user) {
                 // Update with fresh data from backend
                 console.log('Token validation successful, updating with fresh data:', response.user);
+                console.log('Fresh user ID:', response.user?.id);
+                console.log('Fresh user roles:', response.user?.roles);
+                console.log('Fresh user name:', response.user?.firstName, response.user?.lastName);
                 setUser(response.user);
                 // Update stored data with fresh data
                 Cookies.set(USER_KEY, JSON.stringify(response.user), { 
@@ -105,7 +111,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         expires: credentials.rememberMe ? 30 : 1, // 30 days or 1 day
         path: '/',
         sameSite: 'lax' as const,
-        secure: typeof window !== 'undefined' && (window as any).location.protocol === 'https:',
+        // eslint-disable-next-line no-undef
+        secure: typeof window !== 'undefined' && window.location.protocol === 'https:',
       };
 
       Cookies.set(TOKEN_KEY, response.accessToken, cookieOptions);
