@@ -19,23 +19,24 @@ export interface AccessTokenPayload {
 @Injectable()
 export class SessionService {
   constructor(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private readonly jwtService: JwtService,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private readonly configService: ConfigService,
   ) {}
 
   /**
    * Generate access token
    */
-  generateAccessToken(payload: Omit<AccessTokenPayload, 'type'>): string {
+  generateAccessToken(payload: Omit<AccessTokenPayload, 'type'>, rememberMe?: boolean): string {
     const tokenPayload: AccessTokenPayload = {
       ...payload,
       type: 'access',
     };
 
+    // Set different expiration based on rememberMe
+    const expiresIn = rememberMe ? '30d' : (this.configService.get<string>('JWT_EXPIRES_IN') || '15m');
+
     return this.jwtService.sign(tokenPayload, {
-      expiresIn: this.configService.get<string>('JWT_EXPIRES_IN') || '15m',
+      expiresIn,
     });
   }
 
@@ -61,13 +62,14 @@ export class SessionService {
     email: string,
     roles: string[],
     sessionId: string,
+    rememberMe?: boolean,
   ): { accessToken: string; refreshToken: string } {
     const accessToken = this.generateAccessToken({
       sub: userId,
       email,
       roles,
       sessionId,
-    });
+    }, rememberMe);
 
     const refreshToken = this.generateRefreshToken({
       sub: userId,

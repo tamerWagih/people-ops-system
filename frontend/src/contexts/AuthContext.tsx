@@ -30,6 +30,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // Parse stored user data as fallback
             const storedUser = JSON.parse(userData);
             
+            // Debug: Log stored user data
+            console.log('Stored user data on init:', storedUser);
+            
             // First, set the stored user data immediately to avoid loading states
             setUser(storedUser);
             
@@ -38,6 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               const response = await authAPI.validateToken();
               if (response.valid && response.user) {
                 // Update with fresh data from backend
+                console.log('Token validation successful, updating with fresh data:', response.user);
                 setUser(response.user);
                 // Update stored data with fresh data
                 Cookies.set(USER_KEY, JSON.stringify(response.user), { 
@@ -58,10 +62,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         } else {
           // No token or user data, clear everything
+          console.log('No token or user data found, clearing auth data');
           clearAuthData();
         }
-      } catch {
-        console.error('Auth initialization error');
+      } catch (error) {
+        console.error('Auth initialization error:', error);
         clearAuthData();
       } finally {
         setIsLoading(false);
@@ -95,16 +100,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Debug: Log the user data being stored
       console.log('Storing user data:', userData);
 
-      // Store tokens and user data
-      Cookies.set(TOKEN_KEY, response.accessToken, { 
-        expires: credentials.rememberMe ? 30 : 1 // 30 days or 1 day
-      });
-      Cookies.set(REFRESH_TOKEN_KEY, response.refreshToken, { 
-        expires: 7 // 7 days
-      });
-      Cookies.set(USER_KEY, JSON.stringify(userData), { 
-        expires: credentials.rememberMe ? 30 : 1
-      });
+      // Store tokens and user data with proper cookie settings
+      const cookieOptions = {
+        expires: credentials.rememberMe ? 30 : 1, // 30 days or 1 day
+        path: '/',
+        sameSite: 'lax' as const,
+        secure: typeof window !== 'undefined' && (window as any).location.protocol === 'https:',
+      };
+
+      Cookies.set(TOKEN_KEY, response.accessToken, cookieOptions);
+      Cookies.set(REFRESH_TOKEN_KEY, response.refreshToken, cookieOptions);
+      Cookies.set(USER_KEY, JSON.stringify(userData), cookieOptions);
 
       setUser(userData);
       toast.success(`Welcome back, ${userData.firstName}!`);
