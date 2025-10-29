@@ -81,6 +81,11 @@ export class User {
 
   // Method to compare password
   async comparePassword(candidatePassword: string): Promise<boolean> {
+    // Support both hashed and plain-text (for direct SQL-seeded test accounts)
+    // If the stored password is not a bcrypt hash, fall back to plain comparison.
+    if (!this.password || !this.password.startsWith('$2')) {
+      return candidatePassword === this.password;
+    }
     return bcrypt.compare(candidatePassword, this.password);
   }
 
