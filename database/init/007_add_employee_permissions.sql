@@ -26,7 +26,7 @@ BEGIN
     
     -- Assign permissions to System_Admin role
     IF system_admin_role_id IS NOT NULL THEN
-        INSERT INTO role_permissions ("roleId", "permissionId", "assignedAt") VALUES
+        INSERT INTO role_permissions ("roleId", "permissionId", "grantedAt") VALUES
             (system_admin_role_id, emp_create_permission_id, NOW()),
             (system_admin_role_id, emp_read_permission_id, NOW()),
             (system_admin_role_id, emp_update_permission_id, NOW()),
