@@ -109,10 +109,13 @@ export class AuthService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = user;
     
-    // Ensure roles are included
-    result.roles = user.roles || [];
+    // Ensure roles are included and properly typed
+    const userResult = {
+      ...result,
+      roles: user.roles || [],
+    };
     
-    return result;
+    return userResult;
   }
 
   /**
