@@ -71,7 +71,7 @@ export class Employee {
   passportExpiry?: Date;
 
   // Basic Employment Info
-  @Column({ name: 'department_id', nullable: true })
+  @Column({ name: 'department_id', type: 'uuid', nullable: true })
   department?: string;
 
   @Index('idx_employees_position')
