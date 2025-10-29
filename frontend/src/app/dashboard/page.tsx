@@ -25,10 +25,10 @@ const DashboardPage: React.FC = () => {
               </div>
               <div className="flex items-center space-x-4">
                 <div className="text-sm text-gray-700">
-                  Welcome, <span className="font-medium">{user?.firstName} {user?.lastName}</span>
+                  Welcome, <span className="font-medium">{user?.firstName || 'User'} {user?.lastName || ''}</span>
                 </div>
                 <div className="text-xs text-gray-500">
-                  Role: {user?.roles?.[0] || 'Unknown'}
+                  Role: {user?.roles?.[0] || 'Loading...'}
                 </div>
                 <button
                   onClick={handleLogout}
