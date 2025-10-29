@@ -10,7 +10,7 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm';
-import { Exclude } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
 import { Role } from './role.entity';
 import { UserRole } from './user-role.entity';
@@ -65,6 +65,7 @@ export class User {
   userRoles: UserRole[];
 
   // Virtual property to get roles
+  @Expose()
   get roles(): string[] {
     return this.userRoles?.map(userRole => userRole.role?.name) || [];
   }

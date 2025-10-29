@@ -108,6 +108,10 @@ export class AuthService {
     // Return user without password
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = user;
+    
+    // Ensure roles are included
+    result.roles = user.roles || [];
+    
     return result;
   }
 
@@ -122,10 +126,14 @@ export class AuthService {
     }
 
     const sessionId = this.sessionService.generateSessionId();
+    
+    // Debug: Log user roles
+    console.log('User roles during login:', user.roles);
+    
     const { accessToken, refreshToken } = this.sessionService.generateTokenPair(
       user.id,
       user.email,
-      user.roles,
+      user.roles || [],
       sessionId,
     );
 
