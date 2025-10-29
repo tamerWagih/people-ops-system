@@ -18,7 +18,7 @@ UPDATE roles SET
 WHERE name = 'Employee';
 
 -- Step 2: Add missing roles
-INSERT INTO roles (id, name, description, is_active, created_at, updated_at) VALUES
+INSERT INTO roles (id, name, description, "isActive", "createdAt", "updatedAt") VALUES
     (uuid_generate_v4(), 'HR_Admin', 'Full HR system administrator with complete access', true, NOW(), NOW()),
     (uuid_generate_v4(), 'HR_Viewer', 'HR Viewer with read-only access to employee data', true, NOW(), NOW()),
     (uuid_generate_v4(), 'WFM_Supervisor', 'WFM Supervisor with team management access', true, NOW(), NOW()),
@@ -28,10 +28,10 @@ INSERT INTO roles (id, name, description, is_active, created_at, updated_at) VAL
 SELECT 
     name,
     description,
-    is_active,
-    created_at
+    "isActive",
+    "createdAt"
 FROM roles 
-WHERE is_active = true
+WHERE "isActive" = true
 ORDER BY 
     CASE 
         WHEN name = 'System_Admin' THEN 1

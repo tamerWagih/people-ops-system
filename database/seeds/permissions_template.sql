@@ -5,7 +5,7 @@
 DELETE FROM permissions;
 
 -- Insert all permissions referenced in the templates
-INSERT INTO permissions (id, name, resource, action, description, created_at, updated_at) VALUES
+INSERT INTO permissions (id, name, resource, action, description, "createdAt", "updatedAt") VALUES
     -- System permissions
     (uuid_generate_v4(), 'users:CREATE', 'users', 'CREATE', 'Create users', NOW(), NOW()),
     (uuid_generate_v4(), 'users:READ', 'users', 'READ', 'Read users', NOW(), NOW()),
