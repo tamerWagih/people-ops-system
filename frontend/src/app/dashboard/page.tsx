@@ -7,6 +7,9 @@ import ProtectedRoute from '../../components/ProtectedRoute';
 const DashboardPage: React.FC = () => {
   const { user, logout } = useAuth();
 
+  // Debug: Log user data
+  console.log('Dashboard user data:', user);
+
   const handleLogout = () => {
     logout();
   };

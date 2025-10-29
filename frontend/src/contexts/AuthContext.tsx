@@ -30,21 +30,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // Parse stored user data as fallback
             const storedUser = JSON.parse(userData);
             
-            // Try to validate token with backend
+            // First, set the stored user data immediately to avoid loading states
+            setUser(storedUser);
+            
+            // Then try to validate token with backend in the background
             try {
               const response = await authAPI.validateToken();
               if (response.valid && response.user) {
+                // Update with fresh data from backend
                 setUser(response.user);
+                // Update stored data with fresh data
+                Cookies.set(USER_KEY, JSON.stringify(response.user), { 
+                  expires: 30 // 30 days
+                });
               } else {
-                // Token invalid, use stored data as fallback
-                setUser(storedUser);
+                // Token invalid, keep using stored data
+                console.log('Token validation failed, using stored user data');
               }
-            } catch {
-              // Backend validation failed, use stored data as fallback
-              setUser(storedUser);
+            } catch (error) {
+              // Backend validation failed, keep using stored data
+              console.log('Backend validation failed, using stored user data:', error);
             }
-          } catch {
+          } catch (error) {
             // Stored data is invalid, clear everything
+            console.log('Stored user data is invalid, clearing auth data:', error);
             clearAuthData();
           }
         } else {
@@ -82,6 +91,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         lastName: response.user.lastName,
         roles: response.user.roles || [],
       };
+
+      // Debug: Log the user data being stored
+      console.log('Storing user data:', userData);
 
       // Store tokens and user data
       Cookies.set(TOKEN_KEY, response.accessToken, { 
