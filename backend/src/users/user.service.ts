@@ -224,4 +224,21 @@ export class UserService {
     const user = await this.findById(userId);
     return user.hasAnyRole(roleNames);
   }
+
+  /**
+   * Get user permissions from roles
+   */
+  async getUserPermissions(userId: string): Promise<string[]> {
+    const result = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoin('user.userRoles', 'userRole')
+      .leftJoin('userRole.role', 'role')
+      .leftJoin('role.rolePermissions', 'rolePermission')
+      .leftJoin('rolePermission.permission', 'permission')
+      .where('user.id = :userId', { userId })
+      .select('permission.name')
+      .getRawMany();
+
+    return result.map(row => row.permission_name).filter(Boolean);
+  }
 }

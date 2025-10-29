@@ -3,10 +3,14 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { AccessTokenPayload } from '../session.service';
+import { UserService } from '../../users/user.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private userService: UserService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -20,12 +24,21 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Invalid token type');
     }
 
-    // Here you would typically fetch the user from the database
-    // For now, we'll return the payload
+    // Fetch user with permissions from database
+    const user = await this.userService.findById(payload.sub);
+    
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Get user permissions from roles
+    const permissions = await this.userService.getUserPermissions(payload.sub);
+
     return {
       userId: payload.sub,
       email: payload.email,
       roles: payload.roles,
+      permissions: permissions,
       sessionId: payload.sessionId,
     };
   }
