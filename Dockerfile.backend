@@ -14,13 +14,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies with network resilience
-RUN npm config set registry https://registry.npmjs.org/ && \
-    npm config set fetch-retry-mintimeout 20000 && \
-    npm config set fetch-retry-maxtimeout 120000 && \
-    npm config set fetch-retries 5 && \
-    npm install --legacy-peer-deps && \
-    npm cache clean --force
+# Install dependencies
+RUN npm install --legacy-peer-deps && npm cache clean --force
 
 # Copy source code
 COPY . ./
