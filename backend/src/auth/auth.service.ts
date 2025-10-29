@@ -130,8 +130,6 @@ export class AuthService {
 
     const sessionId = this.sessionService.generateSessionId();
     
-    // Debug: Log user roles
-    console.log('User roles during login:', user.roles);
     
     const { accessToken, refreshToken } = this.sessionService.generateTokenPair(
       user.id,
@@ -247,7 +245,6 @@ export class AuthService {
   async logout(sessionId: string): Promise<void> {
     // TODO: Invalidate session in database
     // TODO: Add token to blacklist
-    console.log(`Logging out session: ${sessionId}`);
   }
 
   /**

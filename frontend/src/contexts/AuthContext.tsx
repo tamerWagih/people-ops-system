@@ -30,11 +30,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // Parse stored user data as fallback
             const storedUser = JSON.parse(userData);
             
-            // Debug: Log stored user data
-            console.log('Stored user data on init:', storedUser);
-            console.log('Stored user ID:', storedUser?.id);
-            console.log('Stored user roles:', storedUser?.roles);
-            console.log('Stored user name:', storedUser?.firstName, storedUser?.lastName);
             
             // First, set the stored user data immediately to avoid loading states
             setUser(storedUser);
@@ -44,10 +39,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               const response = await authAPI.validateToken();
               if (response.valid && response.user) {
                 // Update with fresh data from backend
-                console.log('Token validation successful, updating with fresh data:', response.user);
-                console.log('Fresh user ID:', response.user?.id);
-                console.log('Fresh user roles:', response.user?.roles);
-                console.log('Fresh user name:', response.user?.firstName, response.user?.lastName);
                 setUser(response.user);
                 // Update stored data with fresh data
                 Cookies.set(USER_KEY, JSON.stringify(response.user), { 
@@ -55,20 +46,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 });
               } else {
                 // Token invalid, keep using stored data
-                console.log('Token validation failed, using stored user data');
               }
             } catch (error) {
               // Backend validation failed, keep using stored data
-              console.log('Backend validation failed, using stored user data:', error);
             }
           } catch (error) {
             // Stored data is invalid, clear everything
-            console.log('Stored user data is invalid, clearing auth data:', error);
             clearAuthData();
           }
         } else {
           // No token or user data, clear everything
-          console.log('No token or user data found, clearing auth data');
           clearAuthData();
         }
       } catch (error) {
@@ -103,8 +90,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         roles: response.user.roles || [],
       };
 
-      // Debug: Log the user data being stored
-      console.log('Storing user data:', userData);
 
       // Store tokens and user data with proper cookie settings
       const cookieOptions = {

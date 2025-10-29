@@ -7,11 +7,6 @@ import ProtectedRoute from '../../components/ProtectedRoute';
 const DashboardPage: React.FC = () => {
   const { user, logout } = useAuth();
 
-  // Debug: Log user data
-  console.log('Dashboard user data:', user);
-  console.log('User ID:', user?.id);
-  console.log('User roles:', user?.roles);
-  console.log('User name:', user?.firstName, user?.lastName);
 
   const handleLogout = () => {
     logout();
@@ -40,10 +35,6 @@ const DashboardPage: React.FC = () => {
                   </div>
                   <div className="text-xs text-gray-500">
                     Role: {user?.roles?.[0] || 'No roles assigned'}
-                  </div>
-                  {/* Debug info - remove in production */}
-                  <div className="text-xs text-gray-400">
-                    ID: {user?.id ? user.id.substring(0, 8) + '...' : 'N/A'}
                   </div>
                 </div>
                 
